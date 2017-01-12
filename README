@@ -1,0 +1,11 @@
+This scrabble word suggestor will suggest words to a user when given the user's
+current rack. The suggestions will be ordered by how many points the user would
+gain if they played that word. Ties are broken by alphabetical ordering.
+
+scrabble.py -- runs the suggestor. invoke with 'python3 scrabble.py'. user will
+               be prompted to enter letter racks. exit with Ctrl+D or Ctrl+C.
+trie.py --     defines a trie which stores valid words along with the points
+               they gain. can be queried for all valid words given user's rack
+test.py --     unit tests.
+
+python3 should be installed to run this suggestor.
