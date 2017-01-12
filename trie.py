@@ -1,9 +1,9 @@
 import itertools
 
 class Node():
-    def __init__(self, val, children=[]):
+    def __init__(self, val):
         self.val = val
-        self.children = children
+        self.children = []
 
     def get_child(self, val):
         for c in self.children:
@@ -20,12 +20,11 @@ class Node():
         for c in self.children:
             if not isinstance(c.val, str):
                 return c.val
-        return None
 
 class ScoreTrie():
     def __init__(self, words, scores):
         self.scores = scores
-        self.root = Node(None)
+        self.root = Node("")
         self.make_trie(words)
 
     def get_score(self, letter):
@@ -48,15 +47,19 @@ class ScoreTrie():
     def get_words(self, letters):
         all_orders = itertools.permutations(letters)
         words = []
-        [ words.extend(get_words_ordered(ordered)) for ordered in all_orders ]
+        [ words.extend(self.get_words_ordered(order)) for order in all_orders ]
         return words
 
     def get_words_ordered(self, letters):
         words = []
         curr_node = self.root
         for letter in letters:
-            word_and_score = get_word_and_score(curr_node)
+            if not curr_node.has_child(letter):
+                return words
+            curr_node = curr_node.get_child(letter)
+
+            word_and_score = curr_node.get_word_and_score()
             if word_and_score:
                 words.append(word_and_score)
-            curr_node = curr_node.get_child(letter)
+
         return words
