@@ -5,11 +5,11 @@ import urllib.request as urlreq
 import zipfile
 
 """Scrabble scores for each letter."""
-scores = {"a": 1, "c": 3, "b": 3, "e": 1, "d": 2, "g": 2,
-         "f": 4, "i": 1, "h": 4, "k": 5, "j": 8, "m": 3,
-         "l": 1, "o": 1, "n": 1, "q": 10, "p": 3, "s": 1,
-         "r": 1, "u": 1, "t": 1, "w": 4, "v": 4, "y": 4,
-         "x": 8, "z": 10}
+scores = {"A": 1, "C": 3, "B": 3, "E": 1, "D": 2, "G": 2,
+         "F": 4, "I": 1, "H": 4, "K": 5, "J": 8, "M": 3,
+         "L": 1, "O": 1, "N": 1, "Q": 10, "P": 3, "S": 1,
+         "R": 1, "U": 1, "T": 1, "W": 4, "V": 4, "Y": 4,
+         "X": 8, "Z": 10}
 
 """Download the SOWPODS list and unzip and store in local directory."""
 url = "http://courses.cms.caltech.edu/cs11/material/advjava/lab1/sowpods.zip"
@@ -25,7 +25,10 @@ zip_ref.close()
 fp = open(filename)
 sowpods = [ word.strip() for word in fp.readlines() ]
 fp.close()
-sowpods = Trie(sowpods)
+
+print("start tree")
+sowpods = ScoreTrie(sowpods, scores)
+print("built tree")
 
 """Cleans up SOWPODS files. Maybe later I should leave and not re-download if possible."""
 os.remove(zipname)
@@ -36,19 +39,18 @@ parser = argparse.ArgumentParser(description="List valid Scrabble words and thei
 parser.add_argument('rack', metavar='LETTERS',
                      help="All letters in your scrabble rack")
 args = parser.parse_args()
+
 rack = args.rack.upper()
 print("The rack is: ", args.rack)
 
 """Find all the SOWPODS words that can be formed with the player's rack."""
 valid = sowpods.get_words(rack)
 
-"""Rate the valid words and order by points."""
-values = { word: points(word) for word in valid ]
-
-def points(word):
-    return sum(scores[letter] for letter in word)
-
-ranking = sorted(zip(values, valid))
+"""Order by decreasing value, tie-breaking with alphabetical ordering."""
+valid.sort(key=lambda word_and_points:word_and_points[0])
+valid.sort(key=lambda word_and_points:word_and_points[1], reverse=True)
 
 """Print out the ranking, first the number of points, then the word formed."""
-[ print(",".join(entry)) for entry in ranking ]
+[ print(word + "," + str(points)) for word, points in valid ]
+
+"""TODO: modularize into different files. Take util functions out of trie. keep prompting for input racks rather than relying on command line once, or allow command line to take multiple racks."""
