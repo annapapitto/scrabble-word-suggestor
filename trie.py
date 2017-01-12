@@ -4,6 +4,7 @@ class Node():
     def __init__(self, val):
         self.val = val
         self.children = []
+        self.words = []
 
     def get_child(self, val):
         for c in self.children:
@@ -16,15 +17,16 @@ class Node():
     def add_child(self, val):
         self.children.append(Node(val))
 
-    def get_word_and_score(self):
-        for c in self.children:
-            if not isinstance(c.val, str):
-                return c.val
+    def get_words(self):
+        return self.words[:]
+
+    def add_word(self, word_and_points):
+        self.words.append(word_and_points)
 
 class ScoreTrie():
     def __init__(self, words, scores):
         self.scores = scores
-        self.root = Node("")
+        self.root = Node("root")
         self.make_trie(words)
 
     def get_score(self, letter):
@@ -36,30 +38,34 @@ class ScoreTrie():
     def put(self, word):
         points = 0
         curr_node = self.root
-        for letter in word:
+        for letter in sorted(word):
             points += self.get_score(letter)
             if not curr_node.has_child(letter):
                 curr_node.add_child(letter)
             curr_node = curr_node.get_child(letter)
-        #now at node of last letter, want to point to leaf with score in
-        curr_node.add_child( (word, points) )
+        #now at node of last letter, want to record word exists with score
+        curr_node.add_word( (word, points) )
 
     def get_words(self, letters):
-        all_orders = itertools.permutations(letters)
-        words = []
-        [ words.extend(self.get_words_ordered(order)) for order in all_orders ]
-        return words
+        return self.get_words_ordered(self.root, sorted(letters))
 
-    def get_words_ordered(self, letters):
-        words = []
-        curr_node = self.root
-        for letter in letters:
-            if not curr_node.has_child(letter):
-                return words
-            curr_node = curr_node.get_child(letter)
+    def get_words_ordered(self, curr_node, letters):
+        if not curr_node:
+            return []
 
-            word_and_score = curr_node.get_word_and_score()
-            if word_and_score:
-                words.append(word_and_score)
+        if not letters:
+            return curr_node.get_words()
 
-        return words
+        res = []
+        use = self.get_words_ordered(curr_node.get_child(letters[0]), letters[1:])
+        res.extend(use)
+        dont_use = self.get_words_ordered(curr_node, self.skip_letter(letters))
+        res.extend(dont_use)
+        return res
+
+    def skip_letter(self, letters):
+        to_skip = letters[0]
+        for i in range(len(letters)):
+            if letters[i] != to_skip:
+                return letters[i:]
+        return ""
